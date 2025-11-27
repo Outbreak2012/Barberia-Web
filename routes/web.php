@@ -68,12 +68,16 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        return Inertia::render('Dashboard', [
+            'servicios' => Servicio::get()
+        ]);
     })->name('dashboard');
 
     // Ruta específica para catálogo de servicios (solo clientes)
     Route::get('/servicios-catalogo', function () {
-        return Inertia::render('Servicios/Catalogo');
+        return Inertia::render('Servicios/Catalogo', [
+            'servicios' => Servicio::get()
+        ]);
     })->middleware('role:cliente')->name('servicios.catalogo');
 
     // Rutas solo para propietario

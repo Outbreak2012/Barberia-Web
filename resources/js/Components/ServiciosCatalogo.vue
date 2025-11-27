@@ -1,30 +1,15 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 import ServicioModal from '@/Components/ServicioModal.vue'
 
 const page = usePage()
-const servicios = ref([])
-const cargando = ref(true)
 const servicioSeleccionado = ref(null)
 const mostrarModal = ref(false)
 const busqueda = ref('')
- const baseUrl = window.location.origin;
-onMounted(async () => {
-  try {
-    console.log('📌 Cargando servicios desde: /api/servicios-catalogo')
-    const response = await fetch(`${baseUrl}/api.servicios-catalogo`)
-    const responsebarberos = await fetch(`${baseUrl}/api.barberos-disponibles`)
-    console.log('📌 Response status:', response.status)
-    const data = await response.json()
-    console.log('📌 Servicios cargados:', data)
-    servicios.value = data
-  } catch (error) {
-    console.error('❌ Error al cargar servicios:', error)
-  } finally {
-    cargando.value = false
-  }
-})
+
+// Los servicios vienen desde las props de la página
+const servicios = computed(() => page.props.servicios || [])
 
 const serviciosFiltrados = computed(() => {
   return servicios.value.filter(s => 
@@ -62,7 +47,7 @@ function cerrarModal() {
     </div>
 
     <!-- Catálogo de servicios -->
-    <div v-if="!cargando" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div 
         v-for="servicio in serviciosFiltrados" 
         :key="servicio.id_servicio"
@@ -127,11 +112,6 @@ function cerrarModal() {
           No se encontraron servicios
         </p>
       </div>
-    </div>
-
-    <!-- Cargando -->
-    <div v-else class="text-center py-12">
-      <p class="text-gray-600 dark:text-gray-400">Cargando servicios...</p>
     </div>
 
     <!-- Modal con detalles -->
