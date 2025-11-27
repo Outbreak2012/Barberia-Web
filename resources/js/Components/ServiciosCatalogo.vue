@@ -57,7 +57,7 @@ function cerrarModal() {
         <!-- Imagen del servicio -->
         <div v-if="servicio.imagen" class="w-full h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
           <img 
-            :src="servicio.imagen.startsWith('https') ? servicio.imagen : `/storage/${servicio.imagen}`" 
+            :src="servicio.imagen.startsWith('http') ? servicio.imagen : `${$page.props.appUrl}/storage/${servicio.imagen}`" 
             :alt="servicio.nombre"
             class="w-full h-full object-cover"
             @error="$event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo imagen%3C/text%3E%3C/svg%3E'"

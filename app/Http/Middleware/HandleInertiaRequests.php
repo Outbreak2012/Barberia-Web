@@ -57,6 +57,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $userData,
             ],
+            'appUrl' => config('app.url'),
         ]);
     }
 }
