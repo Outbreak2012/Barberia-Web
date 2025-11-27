@@ -93,7 +93,7 @@ async function verificarEstadoPago() {
   verificandoPago.value = true
   
   try {
-    const response = await axios.get(`/api/pagos/${pagoId.value}/estado`)
+    const response = await axios.get(route('pagos.estado', pagoId.value))
     
     if (response.data.success) {
       const estado = response.data.pago.estado
