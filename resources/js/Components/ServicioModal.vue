@@ -29,10 +29,8 @@ onMounted(async () => {
 })
 
 async function cargarBarberos() {
-  const baseUrl = window.location.origin; // Obtiene http://localhost:8000 o tu dominio
-    
   try {
-    const response = await fetch(`${baseUrl}/api.barberos-disponibles`)
+    const response = await fetch(route('barberos.disponibles.api'))
     barberos.value = await response.json()
   } catch (error) {
     console.error('Error al cargar barberos:', error)
@@ -49,9 +47,11 @@ async function cargarHorarios() {
 
   cargandoHorarios.value = true
   try {
-    const response = await fetch(
-      `/api/horarios-disponibles?barbero_id=${formData.value.id_barbero}&fecha=${formData.value.fecha_reserva}`
-    )
+    const url = route('horarios.disponibles.api', {
+      barbero_id: formData.value.id_barbero,
+      fecha: formData.value.fecha_reserva
+    })
+    const response = await fetch(url)
     horarios.value = await response.json()
     console.log('Horarios disponibles:', horarios.value)
   } catch (error) {
