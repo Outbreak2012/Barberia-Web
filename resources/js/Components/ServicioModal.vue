@@ -29,8 +29,10 @@ onMounted(async () => {
 })
 
 async function cargarBarberos() {
+  const baseUrl = window.location.origin; // Obtiene http://localhost:8000 o tu dominio
+    
   try {
-    const response = await fetch('/api/barberos-disponibles')
+    const response = await fetch(`${baseUrl}/api.barberos-disponibles`)
     barberos.value = await response.json()
   } catch (error) {
     console.error('Error al cargar barberos:', error)

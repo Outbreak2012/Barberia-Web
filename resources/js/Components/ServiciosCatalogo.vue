@@ -9,12 +9,12 @@ const cargando = ref(true)
 const servicioSeleccionado = ref(null)
 const mostrarModal = ref(false)
 const busqueda = ref('')
-
+ const baseUrl = window.location.origin;
 onMounted(async () => {
   try {
     console.log('📌 Cargando servicios desde: /api/servicios-catalogo')
-    const response = await fetch('/api/servicios-catalogo')
-    const responsebarberos = await fetch('/api/barberos-disponibles')
+    const response = await fetch(`${baseUrl}/api.servicios-catalogo`)
+    const responsebarberos = await fetch(`${baseUrl}/api.barberos-disponibles`)
     console.log('📌 Response status:', response.status)
     const data = await response.json()
     console.log('📌 Servicios cargados:', data)
