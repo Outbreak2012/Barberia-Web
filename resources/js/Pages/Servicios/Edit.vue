@@ -8,7 +8,13 @@ const props = defineProps({
   productos: Array,
 })
 
-const previewImage = ref(props.servicio.imagen || null)
+const previewImage = ref(
+  props.servicio.imagen 
+    ? (props.servicio.imagen.startsWith('http') 
+        ? props.servicio.imagen 
+        : `https://mail.tecnoweb.org.bo/inf513/grupo11sa/proyecto2/public${props.servicio.imagen.replace(/^\/+/, '')}`)
+    : null
+)
 
 const productosSeleccionados = ref(
   (props.servicio.productos || []).map(p => ({

@@ -31,7 +31,7 @@ const positionClasses = {
 async function fetchViews() {
   try {
     const currentPath = window.location.pathname.replace(/^\//, '')
-    const response = await axios.get('/api/page-views/current', {
+    const response = await axios.get(route('page-views.current'), {
       params: { path: currentPath }
     })
     
