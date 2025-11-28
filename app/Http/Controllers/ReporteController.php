@@ -47,8 +47,8 @@ class ReporteController extends Controller
             ->select('pago.id_pago', 'pago.monto_total', 'pago.fecha_pago', 'pago.estado')
             ->get();
 
-        // Query base para reservas con filtros
-        $reservasQuery = Reserva::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        // Query base para reservas con filtros - USAR fecha_reserva en lugar de created_at
+        $reservasQuery = Reserva::whereBetween('fecha_reserva', [$fechaInicio, $fechaFin]);
         
         if ($idBarbero) {
             $reservasQuery->where('id_barbero', $idBarbero);
@@ -62,6 +62,11 @@ class ReporteController extends Controller
 
         $reservasData = $reservasQuery->orderBy('id_reserva')
             ->get(['id_reserva', 'estado']);
+        
+        \Log::info('ReporteController - Reservas obtenidas', [
+            'filtros' => compact('fechaInicio', 'fechaFin', 'idBarbero', 'idServicio', 'estadoReserva'),
+            'total_reservas' => $reservasData->count()
+        ]);
 
         // Ingresos mensuales
         $ingresosMensuales = Pago::query()
@@ -83,7 +88,7 @@ class ReporteController extends Controller
         $rankingBarberosaRaw = Barbero::query()
             ->leftJoin('reserva', 'barbero.id_barbero', '=', 'reserva.id_barbero')
             ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin]);
+            ->whereBetween('reserva.fecha_reserva', [$fechaInicio, $fechaFin]);
         
         if ($idBarbero) {
             $rankingBarberosaRaw->where('barbero.id_barbero', $idBarbero);
@@ -124,7 +129,7 @@ class ReporteController extends Controller
         $serviciosMasPopulares = Servicio::query()
             ->leftJoin('reserva', 'servicio.id_servicio', '=', 'reserva.id_servicio')
             ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
+            ->whereBetween('reserva.fecha_reserva', [$fechaInicio, $fechaFin])
             ->where('servicio.estado', 'activo');
         
         if ($idBarbero) {
@@ -167,7 +172,7 @@ class ReporteController extends Controller
         $clientesFrecuentesRaw = Cliente::query()
             ->join('reserva', 'cliente.id_cliente', '=', 'reserva.id_cliente')
             ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin]);
+            ->whereBetween('reserva.fecha_reserva', [$fechaInicio, $fechaFin]);
         
         if ($idBarbero) {
             $clientesFrecuentesRaw->where('reserva.id_barbero', $idBarbero);
@@ -220,7 +225,7 @@ class ReporteController extends Controller
 
         // Distribución de estados con filtros
         $distribucionEstadosQuery = Reserva::query()
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+            ->whereBetween('fecha_reserva', [$fechaInicio, $fechaFin]);
         
         if ($idBarbero) {
             $distribucionEstadosQuery->where('id_barbero', $idBarbero);
@@ -246,7 +251,7 @@ class ReporteController extends Controller
         // Distribución de métodos de pago con filtros
         $distribucionMetodosPagoQuery = Pago::query()
             ->join('reserva', 'pago.id_reserva', '=', 'reserva.id_reserva')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
+            ->whereBetween('reserva.fecha_reserva', [$fechaInicio, $fechaFin])
             ->where('pago.estado', 'pagado');
         
         if ($idBarbero) {
