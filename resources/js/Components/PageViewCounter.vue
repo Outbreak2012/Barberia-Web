@@ -31,21 +31,39 @@ const positionClasses = {
 async function fetchViews() {
   try {
     const currentPath = window.location.pathname.replace(/^\//, '')
-    const response = await axios.get(route('page-views.current'), {
+    console.log('🔍 PageViewCounter - Fetching views for path:', currentPath)
+    console.log('🔍 PageViewCounter - Full URL:', window.location.href)
+    console.log('🔍 PageViewCounter - Route exists?', typeof route === 'function')
+    
+    const url = route('page-views.current')
+    console.log('🔍 PageViewCounter - API URL:', url)
+    
+    const response = await axios.get(url, {
       params: { path: currentPath }
     })
+    
+    console.log('✅ PageViewCounter - Response:', response.data)
     
     if (response.data.success) {
       currentViews.value = response.data.views
       isLoading.value = false
       
+      console.log('📊 PageViewCounter - Views updated:', currentViews.value)
+      
       // Mostrar el contador con animación
       setTimeout(() => {
         isVisible.value = true
       }, 300)
+    } else {
+      console.warn('⚠️ PageViewCounter - Success=false in response')
     }
   } catch (error) {
-    console.error('Error al obtener visitas:', error)
+    console.error('❌ PageViewCounter - Error al obtener visitas:', error)
+    console.error('❌ PageViewCounter - Error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    })
     isLoading.value = false
   }
 }

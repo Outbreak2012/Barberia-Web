@@ -62,11 +62,12 @@ async function cargarHorarios() {
 }
 
 function formatoPrecio(precio) {
-  return new Intl.NumberFormat('es-ES', {
+  return new Intl.NumberFormat('es-BO', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'BOB',
   }).format(precio)
 }
+
 
 async function reservar() {
   errores.value = {}

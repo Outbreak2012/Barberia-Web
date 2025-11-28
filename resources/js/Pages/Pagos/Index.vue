@@ -315,7 +315,7 @@ function getTipoPagoLabel(tipo) {
                       </Link>
                       
                       <Link 
-                        v-if="isPropietario || isBarbero" 
+                        v-if="isPropietario " 
                         :href="route('pagos.edit', p.id_pago)" 
                         class="hover:opacity-75 transition"
                         title="Editar"

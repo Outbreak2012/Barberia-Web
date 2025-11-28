@@ -163,32 +163,32 @@ onUnmounted(() => {
 
             <div class="space-y-4">
               <!-- Servicio -->
-              <div class="border-b pb-3" style="border-color: var(--color-neutral); opacity: 0.3;">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Servicio</p>
+              <div class="border-b pb-3" style="border-color: var(--color-neutral); ">
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Servicio</p>
                 <p class="font-semibold" style="color: var(--color-neutral);">{{ servicio.nombre }}</p>
                 <p class="text-sm" style="color: var(--color-neutral); opacity: 0.7;">{{ servicio.duracion_minutos }} minutos</p>
               </div>
 
               <!-- Barbero -->
-              <div class="border-b pb-3" style="border-color: var(--color-neutral); opacity: 0.3;">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Barbero</p>
+              <div class="border-b pb-3" style="border-color: var(--color-neutral); ">
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Barbero</p>
                 <p class="font-semibold" style="color: var(--color-neutral);">{{ barbero.user?.name }}</p>
               </div>
 
               <!-- Fecha y hora -->
-              <div class="border-b pb-3" style="border-color: var(--color-neutral); opacity: 0.3;">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Fecha</p>
+              <div class="border-b pb-3" style="border-color: var(--color-neutral); ">
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Fecha</p>
                 <p class="font-semibold" style="color: var(--color-neutral);">{{ formatoFecha(fecha_reserva) }}</p>
               </div>
 
-              <div class="border-b pb-3" style="border-color: var(--color-neutral); opacity: 0.3;">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Horario</p>
+              <div class="border-b pb-3" style="border-color: var(--color-neutral); ">
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Horario</p>
                 <p class="font-semibold" style="color: var(--color-neutral);">{{ hora_inicio }} - {{ hora_fin }}</p>
               </div>
 
               <!-- Info del pago -->
-              <div class="border-b pb-3" style="border-color: var(--color-neutral); opacity: 0.3;">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Tipo de pago</p>
+              <div class="border-b pb-3" style="border-color: var(--color-neutral); ">
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Tipo de pago</p>
                 <p class="font-semibold px-2 py-1 rounded inline-block" style="background-color: var(--color-warning); color: var(--color-base);">
                   Pago Final (50%)
                 </p>
@@ -196,7 +196,7 @@ onUnmounted(() => {
 
               <!-- Total -->
               <div class="pt-3">
-                <p class="text-sm mb-1" style="color: var(--color-neutral); opacity: 0.7;">Total a pagar</p>
+                <p class="text-sm mb-1" style="color: var(--color-neutral); ">Total a pagar</p>
                 <p class="text-2xl font-bold" style="color: var(--color-primary);">
                   {{ formatoPrecio(monto_total) }}
                 </p>
@@ -215,7 +215,7 @@ onUnmounted(() => {
               <!-- Área del QR -->
               <div 
                 class="border-2 border-dashed rounded-lg p-8 min-h-[300px] flex items-center justify-center"
-                :style="{ borderColor: 'var(--color-neutral)', opacity: 0.5 }">
+                :style="{ borderColor: 'var(--color-neutral)',  }">
                 
                 <!-- Estado: No generado -->
                 <div v-if="!qrGenerado && !cargandoQR" class="text-center">
@@ -276,7 +276,7 @@ onUnmounted(() => {
                     Escanea el código con tu aplicación bancaria
                   </p>
                   
-                  <div class="text-xs space-y-1" style="color: var(--color-neutral); opacity: 0.7;">
+                  <div class="text-xs space-y-1" style="color: var(--color-neutral);">
                     <p><strong>Monto:</strong> {{ formatoPrecio(monto_total) }}</p>
                     <p><strong>Nro. Pago:</strong> {{ nroPago }}</p>
                     <p v-if="estadoPago === 'pendiente'" class="text-blue-600 font-semibold mt-2">
@@ -290,7 +290,7 @@ onUnmounted(() => {
               </div>
 
               <!-- Instrucciones -->
-              <div class="text-left p-4 rounded" style="background-color: var(--color-primary); opacity: 0.1;">
+              <div class="text-left p-4 rounded" style="background-color: var(--color-primary); ">
                 <p class="text-sm font-semibold mb-2" style="color: var(--color-neutral);">Instrucciones:</p>
                 <ol class="text-sm space-y-1 list-decimal list-inside" style="color: var(--color-neutral);">
                   <li>Genera el código QR</li>

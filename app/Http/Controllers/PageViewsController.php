@@ -15,12 +15,29 @@ class PageViewsController extends Controller
         $path = $request->input('path', $request->path());
         $cacheKey = 'views:' . $path;
         
+        \Log::info('PageViewsController - getCurrentPageViews', [
+            'path' => $path,
+            'cacheKey' => $cacheKey,
+            'cache_driver' => config('cache.default'),
+            'request_path' => $request->path(),
+            'input_path' => $request->input('path')
+        ]);
+        
         $views = Cache::get($cacheKey, 0);
+        
+        \Log::info('PageViewsController - Vistas obtenidas', [
+            'cacheKey' => $cacheKey,
+            'views' => $views
+        ]);
         
         return response()->json([
             'success' => true,
             'path' => $path,
-            'views' => $views
+            'views' => $views,
+            'debug' => [
+                'cache_driver' => config('cache.default'),
+                'cacheKey' => $cacheKey
+            ]
         ]);
     }
 

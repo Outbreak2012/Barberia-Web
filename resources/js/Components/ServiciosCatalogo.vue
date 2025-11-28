@@ -84,7 +84,7 @@ function cerrarModal() {
             <div class="p-3 rounded" style="background-color: var(--color-primary); ">
               <p class="text-xs " style="color: var(--color-neutral);">Precio</p>
               <p class="text-lg font-bold" style="color: var(--color-neutral);">
-                ${{ servicio.precio }}
+                BOB{{ servicio.precio }}
               </p>
             </div>
             <div class="p-3 rounded" style="background-color: var(--color-primary); ">
