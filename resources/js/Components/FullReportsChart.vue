@@ -39,41 +39,62 @@ const pagosChartData = computed(() => {
 
   const monthlyData = {}
   props.pagosData.forEach(pago => {
-    const date = new Date(pago.fecha_pago)
-    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-    if (!monthlyData[month]) {
-      monthlyData[month] = 0
+    // Extraer solo la parte de la fecha (YYYY-MM-DD) del string ISO
+    const fechaStr = pago.fecha_pago.split('T')[0] // "2025-11-02"
+    const [year, month, day] = fechaStr.split('-')
+    const monthKey = `${year}-${month}`
+    
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = 0
     }
-    monthlyData[month] += parseFloat(pago.monto_total) || 0
+    monthlyData[monthKey] += parseFloat(pago.monto_total) || 0
   })
 
   console.log('📅 Datos mensuales agrupados:', monthlyData)
 
-  const labels = Object.keys(monthlyData).sort().slice(-6)
+  const sortedMonths = Object.keys(monthlyData).sort()
+  const labels = sortedMonths.slice(-6)
   const data = labels.map(m => monthlyData[m])
 
   console.log('📈 Labels finales:', labels)
   console.log('💰 Data final:', data)
+  console.log('📊 Verificación - Hay datos?', data.length > 0, 'Total:', data.reduce((a,b) => a+b, 0))
 
-  return {
-    labels: labels.map(m => {
-      const [year, month] = m.split('-')
-      return new Date(year, month - 1).toLocaleDateString('es-BO', { month: 'short', year: '2-digit' })
-    }),
+  if (data.length === 0 || data.every(v => v === 0)) {
+    console.warn('⚠️ Todos los datos son 0 o no hay datos')
+  }
+
+  const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+  const formattedLabels = labels.map(m => {
+    const [year, month] = m.split('-')
+    return `${monthNames[parseInt(month) - 1]} '${year.slice(-2)}`
+  })
+
+  console.log('🏷️ Labels formateados:', formattedLabels)
+
+  const chartData = {
+    labels: formattedLabels,
     datasets: [{
       label: 'Pagos Completados (Bs)',
       data: data,
-      borderColor: 'var(--color-success, #10b981)',
+      borderColor: '#10b981',
       backgroundColor: 'rgba(16, 185, 129, 0.1)',
       tension: 0.4,
       fill: true,
     }]
   }
+  
+  console.log('📊 ChartData completo:', chartData)
+  
+  return chartData
 })
 
 // Gráfico de Reservas por Estado
 const reservasChartData = computed(() => {
+  console.log('📊 reservasData:', props.reservasData)
+  
   if (!props.reservasData || props.reservasData.length === 0) {
+    console.warn('⚠️ No hay datos de reservas')
     return { labels: [], datasets: [] }
   }
 
@@ -92,8 +113,10 @@ const reservasChartData = computed(() => {
       stateData[estado]++
     }
   })
+  
+  console.log('📊 Estados agrupados:', stateData)
 
-  return {
+  const chartData = {
     labels: ['Pendiente Pago', 'Confirmada', 'En Proceso', 'Completada', 'Cancelada', 'No Asistió'],
     datasets: [{
       label: 'Reservas',
@@ -124,6 +147,9 @@ const reservasChartData = computed(() => {
       borderWidth: 2,
     }]
   }
+  
+  console.log('📊 reservasChartData:', chartData)
+  return chartData
 })
 
 // Gráfico de Barberos Top
@@ -235,66 +261,79 @@ const getTextColor = () => {
   return getComputedStyle(document.documentElement).getPropertyValue('--color-neutral').trim() || '#6b7280'
 }
 
-const chartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: {
-    legend: {
-      display: true,
-      labels: {
-        color: getTextColor(),
-        font: { size: 12 }
+const chartOptions = computed(() => {
+  const textColor = getTextColor()
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6'
+  
+  console.log('🎨 Chart options - textColor:', textColor, 'primaryColor:', primaryColor)
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        display: true,
+        labels: {
+          color: textColor,
+          font: { size: 12 }
+        }
+      },
+      title: {
+        color: textColor,
+        font: { size: 14, weight: 'bold' }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: primaryColor,
+        borderWidth: 1,
       }
     },
-    title: {
-      color: getTextColor(),
-      font: { size: 14, weight: 'bold' }
-    },
-    tooltip: {
-      backgroundColor: 'rgba(31, 41, 55, 0.95)',
-      titleColor: '#ffffff',
-      bodyColor: '#ffffff',
-      borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6',
-      borderWidth: 1,
-    }
-  },
-  scales: {
-    y: {
-      ticks: { color: getTextColor() },
-      grid: { color: 'rgba(107, 114, 128, 0.1)' }
-    },
-    x: {
-      ticks: { color: getTextColor() },
-      grid: { color: 'rgba(107, 114, 128, 0.1)' }
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { color: textColor },
+        grid: { color: 'rgba(107, 114, 128, 0.1)' }
+      },
+      x: {
+        ticks: { color: textColor },
+        grid: { color: 'rgba(107, 114, 128, 0.1)' }
+      }
     }
   }
-}))
+})
 
-const pieOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: 'bottom',
-      labels: {
-        color: getTextColor(),
-        font: { size: 12 }
+const pieOptions = computed(() => {
+  const textColor = getTextColor()
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6'
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          color: textColor,
+          font: { size: 12 }
+        }
+      },
+      title: {
+        color: textColor,
+        font: { size: 14, weight: 'bold' }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: primaryColor,
+        borderWidth: 1,
       }
-    },
-    title: {
-      color: getTextColor(),
-      font: { size: 14, weight: 'bold' }
-    },
-    tooltip: {
-      backgroundColor: 'rgba(31, 41, 55, 0.95)',
-      titleColor: '#ffffff',
-      bodyColor: '#ffffff',
-      borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6',
-      borderWidth: 1,
     }
   }
-}))
+})
 </script>
 
 <template>
