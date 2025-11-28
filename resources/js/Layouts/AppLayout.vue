@@ -55,7 +55,7 @@ const sidebarOpen = ref(true)
 const links = computed(() => [
     //{ key: 'dashboard', label: 'Dashboard', route: 'dashboard', roles: ['propietario', 'barbero'], icon: '🏠' },
     { key: 'reportes', label: 'Reportes', route: 'reportes.index', roles: ['propietario'], icon: '📊' },
-    { key: 'estadisticas-visitas', label: 'Estadísticas de Visitas', route: 'estadisticas.visitas', roles: ['propietario'], icon: '👁️' },
+   // { key: 'estadisticas-visitas', label: 'Estadísticas de Visitas', route: 'estadisticas.visitas', roles: ['propietario'], icon: '👁️' },
     { key: 'categorias', label: 'Categorías', route: 'categorias.index', roles: ['propietario'], icon: '📁' },
     { key: 'productos', label: 'Productos', route: 'productos.index', roles: ['propietario'], icon: '📦' },
     { key: 'servicios', label: 'Servicios', route: 'servicios.index', roles: ['propietario'], icon: '✂️' },
@@ -99,9 +99,9 @@ const visibleLinks = computed(() => links.value.filter(link => hasRole(link.role
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('dashboard')">
                                 <div class=" flex justify-center">
-                                    <img src="/storage/logo3.png" alt="Evolution Barber Studio"
+                                    <img src="https://mail.tecnoweb.org.bo/inf513/grupo11sa/proyecto2/public/storage/logo3.png" alt="Evolution Barber Studio"
                                         class="h-32 w-auto object-contain" />
-                                </div>
+                                            </div>
                                 </Link>
                             </div>
 

@@ -78,35 +78,48 @@ const reservasChartData = computed(() => {
   }
 
   const stateData = {
-    'pendiente': 0,
+    'pendiente_pago': 0,
     'confirmada': 0,
+    'en_proceso': 0,
     'completada': 0,
     'cancelada': 0,
+    'no_asistio': 0,
   }
 
   props.reservasData.forEach(res => {
-    const estado = (res.estado || 'pendiente').toLowerCase()
+    const estado = (res.estado || 'pendiente_pago').toLowerCase()
     if (stateData.hasOwnProperty(estado)) {
       stateData[estado]++
     }
   })
 
   return {
-    labels: ['Pendiente', 'Confirmada', 'Completada', 'Cancelada'],
+    labels: ['Pendiente Pago', 'Confirmada', 'En Proceso', 'Completada', 'Cancelada', 'No Asistió'],
     datasets: [{
       label: 'Reservas',
-      data: [stateData.pendiente, stateData.confirmada, stateData.completada, stateData.cancelada],
+      data: [
+        stateData.pendiente_pago, 
+        stateData.confirmada, 
+        stateData.en_proceso, 
+        stateData.completada, 
+        stateData.cancelada, 
+        stateData.no_asistio
+      ],
       backgroundColor: [
         'rgba(234, 179, 8, 0.8)',
         'rgba(59, 130, 246, 0.8)',
+        'rgba(156, 163, 175, 0.8)',
         'rgba(16, 185, 129, 0.8)',
         'rgba(239, 68, 68, 0.8)',
+        'rgba(249, 115, 22, 0.8)',
       ],
       borderColor: [
         'rgba(234, 179, 8, 1)',
         'rgba(59, 130, 246, 1)',
+        'rgba(156, 163, 175, 1)',
         'rgba(16, 185, 129, 1)',
         'rgba(239, 68, 68, 1)',
+        'rgba(249, 115, 22, 1)',
       ],
       borderWidth: 2,
     }]
@@ -186,59 +199,78 @@ const estadosChartData = computed(() => {
   const data = props.distribucionEstados
   
   return {
-    labels: ['Completadas', 'Canceladas', 'No Asistió', 'Confirmadas'],
+    labels: ['Completadas', 'Canceladas', 'No Asistió', 'Confirmadas', 'En Proceso', 'Pendiente Pago'],
     datasets: [{
       label: 'Reservas',
-      data: [data.completadas || 0, data.canceladas || 0, data.no_asistio || 0, data.confirmadas || 0],
+      data: [
+        data.completadas || 0, 
+        data.canceladas || 0, 
+        data.no_asistio || 0, 
+        data.confirmadas || 0,
+        data.en_proceso || 0,
+        data.pendiente_pago || 0
+      ],
       backgroundColor: [
         'rgba(16, 185, 129, 0.8)',
         'rgba(239, 68, 68, 0.8)',
-        'rgba(234, 179, 8, 0.8)',
+        'rgba(249, 115, 22, 0.8)',
         'rgba(59, 130, 246, 0.8)',
+        'rgba(156, 163, 175, 0.8)',
+        'rgba(234, 179, 8, 0.8)',
       ],
       borderColor: [
         'rgba(16, 185, 129, 1)',
         'rgba(239, 68, 68, 1)',
-        'rgba(234, 179, 8, 1)',
+        'rgba(249, 115, 22, 1)',
         'rgba(59, 130, 246, 1)',
+        'rgba(156, 163, 175, 1)',
+        'rgba(234, 179, 8, 1)',
       ],
       borderWidth: 2,
     }]
   }
 })
 
-const chartOptions = {
+const getTextColor = () => {
+  return getComputedStyle(document.documentElement).getPropertyValue('--color-neutral').trim() || '#6b7280'
+}
+
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: true,
   plugins: {
     legend: {
       display: true,
       labels: {
-        color: 'var(--color-neutral, #6b7280)',
+        color: getTextColor(),
         font: { size: 12 }
       }
     },
+    title: {
+      color: getTextColor(),
+      font: { size: 14, weight: 'bold' }
+    },
     tooltip: {
-      backgroundColor: 'var(--color-neutral, #1f2937)',
-      titleColor: 'var(--color-base, #ffffff)',
-      bodyColor: 'var(--color-base, #ffffff)',
-      borderColor: 'var(--color-primary, #3b82f6)',
+      backgroundColor: 'rgba(31, 41, 55, 0.95)',
+      titleColor: '#ffffff',
+      bodyColor: '#ffffff',
+      borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6',
       borderWidth: 1,
     }
   },
   scales: {
     y: {
-      ticks: { color: 'var(--color-neutral, #6b7280)' },
+      ticks: { color: getTextColor() },
       grid: { color: 'rgba(107, 114, 128, 0.1)' }
     },
     x: {
-      ticks: { color: 'var(--color-neutral, #6b7280)' },
+      ticks: { color: getTextColor() },
       grid: { color: 'rgba(107, 114, 128, 0.1)' }
     }
   }
-}
+}))
 
-const pieOptions = {
+const pieOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: true,
   plugins: {
@@ -246,19 +278,23 @@ const pieOptions = {
       display: true,
       position: 'bottom',
       labels: {
-        color: 'var(--color-neutral, #6b7280)',
+        color: getTextColor(),
         font: { size: 12 }
       }
     },
+    title: {
+      color: getTextColor(),
+      font: { size: 14, weight: 'bold' }
+    },
     tooltip: {
-      backgroundColor: 'var(--color-neutral, #1f2937)',
-      titleColor: 'var(--color-base, #ffffff)',
-      bodyColor: 'var(--color-base, #ffffff)',
-      borderColor: 'var(--color-primary, #3b82f6)',
+      backgroundColor: 'rgba(31, 41, 55, 0.95)',
+      titleColor: '#ffffff',
+      bodyColor: '#ffffff',
+      borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6',
       borderWidth: 1,
     }
   }
-}
+}))
 </script>
 
 <template>
@@ -348,7 +384,7 @@ const pieOptions = {
               <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ barbero.especialidad }}</td>
               <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ barbero.total_servicios }}</td>
               <td class="px-6 py-4 text-sm font-medium" :style="{ color: 'var(--color-primary)' }">{{ barbero.servicios_completados }}</td>
-              <td class="px-6 py-4 text-sm font-medium" :style="{ color: 'var(--color-success)' }">{{ barbero.ingresos_generados.toFixed(2) }}</td>
+              <td class="px-6 py-4 text-sm font-medium" :style="{ color: 'var(--color-success)' }">Bs {{ barbero.ingresos_generados.toFixed(2) }}</td>
             </tr>
           </tbody>
         </table>
@@ -377,8 +413,8 @@ const pieOptions = {
               <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ cliente.nombre }}</td>
               <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ cliente.email }}</td>
               <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ cliente.total_reservas }}</td>
-              <td class="px-6 py-4 text-sm font-medium" :style="{ color: 'var(--color-success)' }">{{ cliente.gasto_total.toFixed(2) }}</td>
-              <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ new Date(cliente.ultima_visita).toLocaleDateString('es-CO') }}</td>
+              <td class="px-6 py-4 text-sm font-medium" :style="{ color: 'var(--color-success)' }">Bs {{ cliente.gasto_total.toFixed(2) }}</td>
+              <td class="px-6 py-4 text-sm" :style="{ color: 'var(--color-neutral)' }">{{ new Date(cliente.ultima_visita).toLocaleDateString('es-BO', { year: 'numeric', month: 'short', day: 'numeric' }) }}</td>
             </tr>
           </tbody>
         </table>

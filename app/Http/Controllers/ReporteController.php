@@ -14,19 +14,53 @@ class ReporteController extends Controller
 {
     public function index()
     {
-        $fechaInicio = now()->subMonth();
-        $fechaFin = now();
+        // Obtener filtros de la petición
+        $fechaInicio = request('fecha_inicio', now()->subMonth()->toDateString());
+        $fechaFin = request('fecha_fin', now()->toDateString());
+        $idBarbero = request('id_barbero');
+        $idServicio = request('id_servicio');
+        $metodoPago = request('metodo_pago');
+        $estadoReserva = request('estado_reserva');
+        
         $año = now()->year;
         $mes = now()->month;
 
-        // Datos básicos
-        $pagosData = Pago::where('estado', 'pagado')
-            ->orderBy('fecha_pago')
-            ->get(['id_pago', 'monto_total', 'fecha_pago', 'estado']);
-          
-        // dd($pagosData);       
+        // Query base para pagos con filtros
+        $pagosQuery = Pago::where('pago.estado', 'pagado')
+            ->join('reserva', 'pago.id_reserva', '=', 'reserva.id_reserva')
+            ->whereBetween('pago.fecha_pago', [$fechaInicio, $fechaFin]);
+        
+        if ($idBarbero) {
+            $pagosQuery->where('reserva.id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $pagosQuery->where('reserva.id_servicio', $idServicio);
+        }
+        if ($metodoPago) {
+            $pagosQuery->where('pago.metodo_pago', $metodoPago);
+        }
+        if ($estadoReserva) {
+            $pagosQuery->where('reserva.estado', $estadoReserva);
+        }
 
-        $reservasData = Reserva::orderBy('id_reserva')
+        $pagosData = $pagosQuery->orderBy('pago.fecha_pago')
+            ->select('pago.id_pago', 'pago.monto_total', 'pago.fecha_pago', 'pago.estado')
+            ->get();
+
+        // Query base para reservas con filtros
+        $reservasQuery = Reserva::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        
+        if ($idBarbero) {
+            $reservasQuery->where('id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $reservasQuery->where('id_servicio', $idServicio);
+        }
+        if ($estadoReserva) {
+            $reservasQuery->where('estado', $estadoReserva);
+        }
+
+        $reservasData = $reservasQuery->orderBy('id_reserva')
             ->get(['id_reserva', 'estado']);
 
         // Ingresos mensuales
@@ -45,16 +79,28 @@ class ReporteController extends Controller
             ->first();
         //dd($ingresosMensuales);    
 
-        // Ranking de barberos
+        // Ranking de barberos con filtros
         $rankingBarberosaRaw = Barbero::query()
             ->leftJoin('reserva', 'barbero.id_barbero', '=', 'reserva.id_barbero')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
-            ->select('barbero.id_barbero', 'barbero.especialidad')
+            ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
+            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin]);
+        
+        if ($idBarbero) {
+            $rankingBarberosaRaw->where('barbero.id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $rankingBarberosaRaw->where('reserva.id_servicio', $idServicio);
+        }
+        if ($estadoReserva) {
+            $rankingBarberosaRaw->where('reserva.estado', $estadoReserva);
+        }
+        
+        $rankingBarberosaRaw = $rankingBarberosaRaw->select('barbero.id_barbero', 'barbero.especialidad')
             ->selectRaw('
                 COUNT(DISTINCT reserva.id_reserva) as total_servicios,
                 COUNT(DISTINCT CASE WHEN reserva.estado = \'completada\' THEN reserva.id_reserva END) as servicios_completados,
-                COALESCE(SUM(CASE WHEN reserva.estado = \'completada\' THEN reserva.total ELSE 0 END), 0) as ingresos_generados,
-                COALESCE(AVG(CASE WHEN reserva.estado = \'completada\' THEN reserva.total END), 0) as promedio_por_servicio
+                COALESCE(SUM(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total ELSE 0 END), 0) as ingresos_generados,
+                COALESCE(AVG(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total END), 0) as promedio_por_servicio
             ')
             ->groupBy('barbero.id_barbero', 'barbero.especialidad')
             ->orderByDesc('servicios_completados')
@@ -74,19 +120,31 @@ class ReporteController extends Controller
             ];
         });
 
-        // Servicios más populares
+        // Servicios más populares con filtros
         $serviciosMasPopulares = Servicio::query()
             ->leftJoin('reserva', 'servicio.id_servicio', '=', 'reserva.id_servicio')
+            ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
             ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
-            ->where('servicio.estado', 'activo')
-            ->selectRaw('
+            ->where('servicio.estado', 'activo');
+        
+        if ($idBarbero) {
+            $serviciosMasPopulares->where('reserva.id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $serviciosMasPopulares->where('servicio.id_servicio', $idServicio);
+        }
+        if ($estadoReserva) {
+            $serviciosMasPopulares->where('reserva.estado', $estadoReserva);
+        }
+        
+        $serviciosMasPopulares = $serviciosMasPopulares->selectRaw('
                 servicio.id_servicio,
                 servicio.nombre,
                 servicio.precio,
                 servicio.duracion_minutos,
                 COUNT(reserva.id_reserva) as veces_solicitado,
                 COUNT(CASE WHEN reserva.estado = \'completada\' THEN 1 END) as veces_completado,
-                COALESCE(SUM(CASE WHEN reserva.estado = \'completada\' THEN reserva.total ELSE 0 END), 0) as ingresos_generados
+                COALESCE(SUM(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total ELSE 0 END), 0) as ingresos_generados
             ')
             ->groupBy('servicio.id_servicio', 'servicio.nombre', 'servicio.precio', 'servicio.duracion_minutos')
             ->orderByDesc('veces_completado')
@@ -105,22 +163,35 @@ class ReporteController extends Controller
                 ];
             });
 
-        // Clientes frecuentes
+        // Clientes frecuentes - CORREGIDO
         $clientesFrecuentesRaw = Cliente::query()
-            ->leftJoin('reserva', 'cliente.id_cliente', '=', 'reserva.id_cliente')
-            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
-            ->select('cliente.id_cliente')
+            ->join('reserva', 'cliente.id_cliente', '=', 'reserva.id_cliente')
+            ->leftJoin('pago', 'reserva.id_reserva', '=', 'pago.id_reserva')
+            ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin]);
+        
+        if ($idBarbero) {
+            $clientesFrecuentesRaw->where('reserva.id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $clientesFrecuentesRaw->where('reserva.id_servicio', $idServicio);
+        }
+        if ($estadoReserva) {
+            $clientesFrecuentesRaw->where('reserva.estado', $estadoReserva);
+        }
+        
+        $clientesFrecuentesRaw = $clientesFrecuentesRaw->select('cliente.id_cliente')
             ->selectRaw('
-                COUNT(reserva.id_reserva) as total_reservas,
-                COUNT(CASE WHEN reserva.estado = \'completada\' THEN 1 END) as reservas_completadas,
-                COALESCE(SUM(CASE WHEN reserva.estado = \'completada\' THEN reserva.total ELSE 0 END), 0) as gasto_total,
-                COALESCE(AVG(CASE WHEN reserva.estado = \'completada\' THEN reserva.total END), 0) as promedio_por_visita,
+                COUNT(DISTINCT reserva.id_reserva) as total_reservas,
+                COUNT(DISTINCT CASE WHEN reserva.estado = \'completada\' THEN reserva.id_reserva END) as reservas_completadas,
+                COALESCE(SUM(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total ELSE 0 END), 0) as gasto_total,
+                COALESCE(AVG(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total END), 0) as promedio_por_visita,
                 MAX(reserva.created_at) as ultima_visita
             ')
             ->groupBy('cliente.id_cliente')
-            ->havingRaw('COUNT(reserva.id_reserva) > 0')
-            ->orderByDesc('reservas_completadas')
+            ->havingRaw('COUNT(DISTINCT reserva.id_reserva) > 0')
+            ->havingRaw('COALESCE(SUM(CASE WHEN pago.estado = \'pagado\' THEN pago.monto_total ELSE 0 END), 0) > 0')
             ->orderByDesc('gasto_total')
+            ->orderByDesc('reservas_completadas')
             ->limit(10)
             ->get();
 
@@ -147,24 +218,51 @@ class ReporteController extends Controller
             ];
         });
 
-        // Distribución de estados
-        $distribucionEstados = Reserva::query()
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->selectRaw('
+        // Distribución de estados con filtros
+        $distribucionEstadosQuery = Reserva::query()
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        
+        if ($idBarbero) {
+            $distribucionEstadosQuery->where('id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $distribucionEstadosQuery->where('id_servicio', $idServicio);
+        }
+        if ($estadoReserva) {
+            $distribucionEstadosQuery->where('estado', $estadoReserva);
+        }
+        
+        $distribucionEstados = $distribucionEstadosQuery->selectRaw('
                 COUNT(*) as total_reservas,
                 COUNT(CASE WHEN estado = \'completada\' THEN 1 END) as completadas,
                 COUNT(CASE WHEN estado = \'cancelada\' THEN 1 END) as canceladas,
                 COUNT(CASE WHEN estado = \'no_asistio\' THEN 1 END) as no_asistio,
-                COUNT(CASE WHEN estado = \'confirmada\' THEN 1 END) as confirmadas
+                COUNT(CASE WHEN estado = \'confirmada\' THEN 1 END) as confirmadas,
+                COUNT(CASE WHEN estado = \'en_proceso\' THEN 1 END) as en_proceso,
+                COUNT(CASE WHEN estado = \'pendiente_pago\' THEN 1 END) as pendiente_pago
             ')
             ->first();
 
-        // Distribución de métodos de pago
-        $distribucionMetodosPago = Pago::query()
+        // Distribución de métodos de pago con filtros
+        $distribucionMetodosPagoQuery = Pago::query()
             ->join('reserva', 'pago.id_reserva', '=', 'reserva.id_reserva')
             ->whereBetween('reserva.created_at', [$fechaInicio, $fechaFin])
-            ->where('pago.estado', 'pagado')
-            ->selectRaw('
+            ->where('pago.estado', 'pagado');
+        
+        if ($idBarbero) {
+            $distribucionMetodosPagoQuery->where('reserva.id_barbero', $idBarbero);
+        }
+        if ($idServicio) {
+            $distribucionMetodosPagoQuery->where('reserva.id_servicio', $idServicio);
+        }
+        if ($metodoPago) {
+            $distribucionMetodosPagoQuery->where('pago.metodo_pago', $metodoPago);
+        }
+        if ($estadoReserva) {
+            $distribucionMetodosPagoQuery->where('reserva.estado', $estadoReserva);
+        }
+        
+        $distribucionMetodosPago = $distribucionMetodosPagoQuery->selectRaw('
                 pago.metodo_pago,
                 COUNT(*) as cantidad_pagos,
                 COALESCE(SUM(pago.monto_total), 0) as monto_total,
@@ -182,6 +280,19 @@ class ReporteController extends Controller
                 ];
             });
 
+        // Obtener lista de barberos y servicios para los filtros
+        $barberos = Barbero::with('user:id,name')
+            ->get()
+            ->map(function ($barbero) {
+                return [
+                    'id_barbero' => $barbero->id_barbero,
+                    'nombre' => $barbero->user->name ?? 'N/A',
+                ];
+            });
+
+        $servicios = Servicio::where('estado', 'activo')
+            ->get(['id_servicio', 'nombre']);
+
         return Inertia::render('Reportes/Index', [
             'pagosData' => $pagosData,
             'reservasData' => $reservasData,
@@ -191,6 +302,16 @@ class ReporteController extends Controller
             'clientesFrecuentes' => $clientesFrecuentes,
             'distribucionEstados' => $distribucionEstados,
             'distribucionMetodosPago' => $distribucionMetodosPago,
+            'barberos' => $barberos,
+            'servicios' => $servicios,
+            'filtros' => [
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin,
+                'id_barbero' => $idBarbero,
+                'id_servicio' => $idServicio,
+                'metodo_pago' => $metodoPago,
+                'estado_reserva' => $estadoReserva,
+            ],
         ]);
     }
 }
